@@ -1,10 +1,16 @@
 import React, { Component } from 'react';
 import { ScrollView, Text, FlatList } from 'react-native';
 import { Card, ListItem } from 'react-native-elements';
-import {PARTNERS} from '../shared/partners';
-import bootstrapIMG from "./images/bootstrap-logo.png";
+import { connect } from 'react-redux';
+import { baseUrl } from '../shared/baseUrl';
+import Loading from './LoadingComponent';
 
-
+//Recieves the state as a prop and returns a partner data from the state. We just need the partners data from the state
+const mapStateToProps = state => {
+    return {
+        partners: state.partners
+    };
+};
 
 function Mission() {
     return (
@@ -33,10 +39,36 @@ class About extends Component {
                 <ListItem
                     title={item.name}
                     subtitle={item.description}
-                    leftAvatar={{source: bootstrapIMG }}
+                    leftAvatar={{source: {uri: baseUrl + item.image}}}
                 />
             );
         };
+
+        //If partners.isLoading is true return the Loading function(defined in LoadingComponent.js)
+        if(this.props.partners.isLoading) {
+            return(
+                <ScrollView>
+                <Mission />
+                <Card
+                    title="Community Partners">
+                    <Loading />
+                </Card>
+            </ScrollView>
+            )
+        }
+
+        //If props.partners has an error message return the error message
+        if(this.props.partners.errMess) {
+            return (
+                <ScrollView>
+                <Mission />
+                <Card
+                    title="Community Partners">
+                    <Text>{this.props.partners.errMess}</Text>
+                </Card>
+            </ScrollView>
+            )
+        }
 
         return (
             <ScrollView>
@@ -44,7 +76,8 @@ class About extends Component {
                 <Card
                     title="Community Partners">
                     <FlatList
-                        data={PARTNERS}
+                        data={this.props.partners.partners} //The first partners handles the partners data i.e. isLoading and errMessage propertier
+                                                            //The second partners is the partners data array 
                         renderItem={renderPartner}
                         keyExtractor={item=>item.id.toString()}
                     />
@@ -54,4 +87,4 @@ class About extends Component {
     }
 }
 
-export default About;
+export default connect(mapStateToProps)(About); //This is so the About component now recieves the partners props from the redux store 

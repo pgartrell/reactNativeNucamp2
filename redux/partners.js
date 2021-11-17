@@ -1,3 +1,4 @@
+//Reducer Files
 import * as ActionTypes from './ActionTypes';
 
 export const partners = (state = { isLoading: true,

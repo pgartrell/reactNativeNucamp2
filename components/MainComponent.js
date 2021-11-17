@@ -16,8 +16,22 @@ import { createDrawerNavigator, DrawerItems } from "react-navigation-drawer";
 import { createAppContainer } from "react-navigation";
 import About from "./AboutComponent";
 import Contact from "./ContactComponent";
+import Reservation from "./ReservationComponent";
 import { Icon } from "react-native-elements";
 import SafeAreaView from "react-native-safe-area-view";
+import { connect } from 'react-redux';
+import { fetchCampsites, fetchComments, fetchPromotions,
+    fetchPartners } from '../redux/ActionCreators';
+
+//These are action creators that have been thunked to send asychronous calls from fetch to the server. 
+//mapDispatchToProps allows us to access the action creators as props 
+const mapDispatchToProps = {
+  fetchCampsites,
+  fetchComments,
+  fetchPromotions,
+  fetchPartners
+};
+
 
 const DirectoryNavigator = createStackNavigator(
   {
@@ -125,6 +139,31 @@ const ContactNavigator = createStackNavigator(
   }
 );
 
+const ReservationNavigator = createStackNavigator(
+  {
+    Reservation: { screen: Reservation }, //Navigation available/listed in the stack
+  },
+  {
+    defaultNavigationOptions: ({ navigation }) => ({
+      headerStyle: {
+        backgroundColor: "#5637DD",
+      },
+      headerTintColor: "#fff",
+      headerTitleStyle: {
+        color: "#fff",
+      },
+      headerLeft: (
+        <Icon
+          name="tree"
+          type="font-awesome"
+          iconStyle={styles.stackIcon}
+          onPress={() => navigation.toggleDrawer()}
+        />
+      ),
+    }),
+  }
+);
+
 //CustomDrawerContentComponent will recieve props as its parameter and will return the drawer
 //SafeAreaView is for the iphone x and defines the area as safe area where nothing else will be layed out.
 //This accounts for the specific layout of this iphone.
@@ -177,6 +216,21 @@ const MainNavigator = createDrawerNavigator(
         ),
       },
     },
+    Reservation: {
+      screen: ReservationNavigator,
+      navigationOptions: {
+        drawerLabel: 'Reserve Campsite',
+        drawerIcon: ({ tintColor }) => (
+          <Icon
+            name="tree"
+            type="font-awesome"
+            size={24}
+            color={tintColor} //Note the tint colors prop will change depending on if the screen is active. active=blue inactive=gray
+          />
+        ),
+      },
+    },
+
     About: {
       screen: AboutNavigator,
       navigationOptions: {
@@ -218,6 +272,14 @@ const AppNavigator = createAppContainer(MainNavigator);
 
 //Goal: render the CampsiteInfoComponent to the view when one of the campsites in the directory is clicked.
 class Main extends Component {
+
+  componentDidMount() {
+    this.props.fetchCampsites();
+    this.props.fetchComments();
+    this.props.fetchPromotions();
+    this.props.fetchPartners();
+}
+
   render() {
     return (
       <View
@@ -260,4 +322,4 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
 });
-export default Main;
+export default connect(null, mapDispatchToProps)(Main); //since we do not have mapStateToProps, the argument is null. 

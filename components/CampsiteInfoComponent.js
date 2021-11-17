@@ -1,8 +1,22 @@
 import React, {Component} from "react";
 import {Text, View, ScrollView, FlatList} from 'react-native'
 import { Card, Icon } from "react-native-elements";
-import {CAMPSITES} from "../shared/campsites"
-import {COMMENTS} from '../shared/comments'
+import { connect } from 'react-redux';
+import { baseUrl } from '../shared/baseUrl';
+import { postFavorite } from "../redux/ActionCreators";
+
+//Recieves the state as a prop and returns a partner data from the state. We just need the partners data from the state
+const mapStateToProps = state => {
+    return {
+        campsites: state.campsites,
+        comments: state.comments,
+        favorites: state.favorites
+    };
+};
+
+mapDispatchToProps = {
+    postFavorite: campsiteId => (postFavorite(campsiteId))
+}
 
 
 //Using props instead of the destructured {campsite} like before bc now we have multiple props to pass
@@ -15,7 +29,7 @@ function RenderCampsite(props) {
         return (
             <Card
                 featuredTitle={campsite.name}
-                image={require('./images/react-lake.jpg')}
+                image={{uri: baseUrl + campsite.image}}
             >
                 <Text style={{margin: 10}}>
                     {campsite.description}
@@ -60,17 +74,8 @@ function RenderComments({comments}) {
 
 class CampsiteInfo extends Component {
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            campsites: CAMPSITES,
-            comments: COMMENTS,
-            favorite: false
-        };
-    }
-
-    markFavorite() {
-        this.setState({favorite: true})
+    markFavorite(campsiteId) {
+        this.props.postFavorite(campsiteId)
     }//toggles the favorite property from true to false
 
     static navigationOptions = {
@@ -79,14 +84,15 @@ class CampsiteInfo extends Component {
 
     render() {
         const campsiteId = this.props.navigation.getParam('campsiteId');
-        const campsite = this.state.campsites.filter(campsite => campsite.id === campsiteId)[0];
-        const comments = this.state.comments.filter(comment => comment.campsiteId === campsiteId) //filtering out the comments for the particular campsite we want
+        const campsite = this.props.campsites.campsites.filter(campsite => campsite.id === campsiteId)[0];
+        const comments = this.props.comments.comments.filter(comment => comment.campsiteId === campsiteId) //filtering out the comments for the particular campsite we want
                                                                                                 // to render using the campsite id into a new array called comments
         return (
             <ScrollView>
-                <RenderCampsite campsite={campsite} 
-                    favorite={this.state.favorite}
-                    markFavorite={() => this.markFavorite()}
+                <RenderCampsite campsite={campsite}
+                //includes returns boolean true or false, so you can use it to see if the campsite being rendered exists in the favorits array 
+                    favorite={this.props.favorites.includes(campsiteId)}
+                    markFavorite={() => this.markFavorite(campsiteId)}
                 />
                 <RenderComments comments ={comments} /> 
             </ScrollView>
@@ -95,4 +101,4 @@ class CampsiteInfo extends Component {
     }
 }
 
-export default CampsiteInfo;
+export default connect(mapStateToProps, mapDispatchToProps)(CampsiteInfo); //This is so the About component now recieves the partners props from the redux store 

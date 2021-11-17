@@ -1,15 +1,18 @@
 import React, { Component } from 'react';
-import { FlatList } from 'react-native';
-import { ListItem } from 'react-native-elements';
-import { CAMPSITES } from '../shared/campsites';
+import { View, FlatList } from 'react-native';
+import { Tile } from 'react-native-elements';
+import { connect } from 'react-redux';
+import { baseUrl } from '../shared/baseUrl';
+import Loading from './LoadingComponent';
+
+//Recieves the state as a prop and returns a partner data from the state. We just need the partners data from the state
+const mapStateToProps = state => {
+    return {
+        campsites: state.campsites
+    };
+};
 
 class Directory extends Component {
-    constructor(props){
-        super(props)
-        this.state = {
-            campsites: CAMPSITES
-        }
-    }
 
     //Sets the text for header title 
     static navigationOptions = {
@@ -20,18 +23,32 @@ render(){
         const {navigate} = this.props.navigation //inherent props that come with navigation library 
         const renderDirectoryItem = ({item}) => {
             return (
-                <ListItem
+                <Tile
                     title= {item.name}
-                    subtitle= {item.description}
+                    caption= {item.description}
+                    featured
                     onPress={() => navigate('CampsiteInfo', {campsiteId: item.id})} //says the name of the screen to navigate to, finds the campite id when pressed
                     leftAvatar={{ source: require('./images/react-lake.jpg')}}
+                    imageSrc={{uri: baseUrl + item.image}}
                 />
 
             )
         }
+
+        if(this.props.campsites.isLoading) {
+            return <Loading />
+        }
+        if(this.props.campsites.errMess){
+            return(
+                <View>
+                    <Text>{props.campsites.errMess}</Text>
+                </View>
+            )
+        }
+
         return (
             <FlatList 
-                data={this.state.campsites}
+                data={this.props.campsites.campsites}
                 renderItem={renderDirectoryItem}
                 keyExtractor={item => item.id.toString()}
             />
@@ -39,4 +56,4 @@ render(){
     }
 }
 
-export default Directory
+export default connect(mapStateToProps)(Directory)
