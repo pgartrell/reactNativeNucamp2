@@ -17,6 +17,7 @@ import { createAppContainer } from "react-navigation";
 import About from "./AboutComponent";
 import Contact from "./ContactComponent";
 import Reservation from "./ReservationComponent";
+import Favorites from "./FavoritesComponent";
 import { Icon } from "react-native-elements";
 import SafeAreaView from "react-native-safe-area-view";
 import { connect } from 'react-redux';
@@ -164,6 +165,31 @@ const ReservationNavigator = createStackNavigator(
   }
 );
 
+const FavoritesNavigator = createStackNavigator(
+  {
+    Favorites: { screen: Favorites }, //Navigation available/listed in the stack
+  },
+  {
+    defaultNavigationOptions: ({ navigation }) => ({
+      headerStyle: {
+        backgroundColor: "#5637DD",
+      },
+      headerTintColor: "#fff",
+      headerTitleStyle: {
+        color: "#fff",
+      },
+      headerLeft: (
+        <Icon
+          name="heart"
+          type="font-awesome"
+          iconStyle={styles.stackIcon}
+          onPress={() => navigation.toggleDrawer()}
+        />
+      ),
+    }),
+  }
+);
+
 //CustomDrawerContentComponent will recieve props as its parameter and will return the drawer
 //SafeAreaView is for the iphone x and defines the area as safe area where nothing else will be layed out.
 //This accounts for the specific layout of this iphone.
@@ -223,6 +249,21 @@ const MainNavigator = createDrawerNavigator(
         drawerIcon: ({ tintColor }) => (
           <Icon
             name="tree"
+            type="font-awesome"
+            size={24}
+            color={tintColor} //Note the tint colors prop will change depending on if the screen is active. active=blue inactive=gray
+          />
+        ),
+      },
+    },
+
+    Favorites: {
+      screen: FavoritesNavigator,
+      navigationOptions: {
+        drawerLabel: 'My Favorites',
+        drawerIcon: ({ tintColor }) => (
+          <Icon
+            name="heart"
             type="font-awesome"
             size={24}
             color={tintColor} //Note the tint colors prop will change depending on if the screen is active. active=blue inactive=gray
