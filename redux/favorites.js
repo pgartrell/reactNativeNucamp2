@@ -14,7 +14,7 @@ export const favorites = (state = [], action) => {
 
         case ActionTypes.DELETE_FAVORITE:
             //Creates a new array into the favorites state by Filtering through the array. Every campsite that does not match the campsiteId in the action payload
-            //Creates a new array that no longer contains the favorite we are deleting
+            //creates a new array that no longer contains the favorite we are deleting
             return state.filter(favorite => favorite !== action.payload); //??
 
             default:

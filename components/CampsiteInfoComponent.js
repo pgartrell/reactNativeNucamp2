@@ -7,11 +7,14 @@ import {
   Modal,
   Button,
   StyleSheet,
+  PanResponder,
+  Alert,
 } from "react-native";
 import { Card, Icon, Rating, Input } from "react-native-elements";
 import { connect } from "react-redux";
 import { baseUrl } from "../shared/baseUrl";
 import { postFavorite, postComment } from "../redux/ActionCreators";
+import * as Animatable from "react-native-animatable";
 
 //Recieves the state as a prop and returns a partner data from the state. We just need the partners data from the state
 const mapStateToProps = (state) => {
@@ -24,7 +27,8 @@ const mapStateToProps = (state) => {
 
 mapDispatchToProps = {
   postFavorite: (campsiteId) => postFavorite(campsiteId),
-  postComment: (campsiteId, rating, author, text) => postComment(campsiteId, rating, author, text) 
+  postComment: (campsiteId, rating, author, text) =>
+    postComment(campsiteId, rating, author, text),
 };
 
 //Using props instead of the destructured {campsite} like before bc now we have multiple props to pass
@@ -32,37 +36,87 @@ mapDispatchToProps = {
 function RenderCampsite(props) {
   const { campsite } = props;
 
+  const view = React.createRef();
+
+  //dx is a gesture across the x axis. Returns true if the value is less than -200 and false if it is not
+  const recognizeDrag = ({ dx }) => (dx < -200 ? true : false);
+
+//e is for event. Required to get to the second Paramenter. Second parameter an object ,gestureState, holds information about the gesture that ended
+//if statement for the gesture to go if it was less than 200px
+  const panResponder = PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onPanResponderGrant: () => {
+      view.current.rubberBand(1000)
+      .then(endState => console.log(endState.finished ? 'finished' : 'canceled'))
+    },
+    onPanResponderEnd: (e, gestureState) => {
+      console.log("pan responder end", gestureState);
+      if (recognizeDrag(gestureState)) {
+        Alert.alert(
+          "Add Favorite",
+          "Are you sure you wish to add " + campsite.name + " to favorites?",
+          [
+            {
+              text: "Cancel",
+              style: "cancel",
+              onPress: () => console.log("Cancel Pressed"),
+            },
+
+            //Check if it is a favorite and console.log if a favorite. If not, calls the mark favorite even handler
+            {
+              text: "OK",
+              onPress: () =>
+                props.favorite
+                  ? console.log("Already set as a favorite")
+                  : props.markFavorite(),
+            },
+          ],
+          { cancelable: false } //So the user cannot tap outside of the alert box to close it
+        );
+      }
+      return true;
+    },
+  });
+
   if (campsite) {
     return (
-      <Card
-        featuredTitle={campsite.name}
-        image={{ uri: baseUrl + campsite.image }}
+      <Animatable.View
+        animation="fadeInDown"
+        duration={2000}
+        delay={1000}
+        ref={view}
+        {...panResponder.panHandlers} //Connects panhandler to the component.  Question: why do we need to spread it out
       >
-        <Text style={{ margin: 10 }}>{campsite.description}</Text>
-        <View style={styles.cardRow}>
-          <Icon
-            name={props.favorite ? "heart" : "heart-o"}
-            type="font-awesome"
-            color="#f50"
-            raised
-            reverse
-            onPress={() =>
-              props.favorite
-                ? console.log("Already set as a favorite")
-                : props.markFavorite()
-            } //If already a favorite then just console log it, if not, mark as favorite
-          />
+        <Card
+          featuredTitle={campsite.name}
+          image={{ uri: baseUrl + campsite.image }}
+        >
+          <Text style={{ margin: 10 }}>{campsite.description}</Text>
+          <View style={styles.cardRow}>
+            <Icon
+              name={props.favorite ? "heart" : "heart-o"}
+              type="font-awesome"
+              color="#f50"
+              raised
+              reverse
+              onPress={() =>
+                props.favorite
+                  ? console.log("Already set as a favorite")
+                  : props.markFavorite()
+              }
+            />
 
-          <Icon
-            name="pencil"
-            type="font-awesome"
-            color="#5637DD"
-            raised
-            reverse
-            onPress={() => props.onShowModal()}
-          />
-        </View>
-      </Card>
+            <Icon
+              name="pencil"
+              type="font-awesome"
+              color="#5637DD"
+              raised
+              reverse
+              onPress={() => props.onShowModal()}
+            />
+          </View>
+        </Card>
+      </Animatable.View>
     );
   }
   return <View />;
@@ -85,13 +139,15 @@ function RenderComments({ comments }) {
   };
 
   return (
-    <Card title="Comments">
-      <FlatList //Use Flatlist since it expects an array and the comments are in the form of an array. This comments list comes from the below comments that have been filtered.
-        data={comments} //give data the comments array for its prop
-        renderItem={renderCommentItem}
-        keyExtractor={(item) => item.id.toString()} //set keyExtracotr to use the comments id for the unique key
-      />
-    </Card>
+    <Animatable.View animation="fadeInUp" duration={2000} delay={1000}>
+      <Card title="Comments">
+        <FlatList //Use Flatlist since it expects an array and the comments are in the form of an array. This comments list comes from the below comments that have been filtered.
+          data={comments} //give data the comments array for its prop
+          renderItem={renderCommentItem}
+          keyExtractor={(item) => item.id.toString()} //set keyExtracotr to use the comments id for the unique key
+        />
+      </Card>
+    </Animatable.View>
   );
 }
 
@@ -111,7 +167,7 @@ class CampsiteInfo extends Component {
   }
 
   handleComment(campsiteId, rating, author, text) {
-    this.props.postComment(campsiteId, rating, author, text)
+    this.props.postComment(campsiteId, rating, author, text);
     this.toggleModal();
   }
 
@@ -186,8 +242,12 @@ class CampsiteInfo extends Component {
             <View>
               <Button
                 onPress={() => {
-                  this.handleComment(campsiteId,this.state.rating,this.state.author,this.state.text);
-                  
+                  this.handleComment(
+                    campsiteId,
+                    this.state.rating,
+                    this.state.author,
+                    this.state.text
+                  );
                 }}
                 color="#5637DD"
                 title="Submit"

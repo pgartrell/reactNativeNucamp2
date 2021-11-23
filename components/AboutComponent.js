@@ -4,6 +4,7 @@ import { Card, ListItem } from 'react-native-elements';
 import { connect } from 'react-redux';
 import { baseUrl } from '../shared/baseUrl';
 import Loading from './LoadingComponent';
+import * as Animatable from 'react-native-animatable'
 
 //Recieves the state as a prop and returns a partner data from the state. We just need the partners data from the state
 const mapStateToProps = state => {
@@ -47,12 +48,14 @@ class About extends Component {
         //If partners.isLoading is true return the Loading function(defined in LoadingComponent.js)
         if(this.props.partners.isLoading) {
             return(
-                <ScrollView>
-                <Mission />
-                <Card
-                    title="Community Partners">
-                    <Loading />
-                </Card>
+            <ScrollView>
+                <Animatable.View animation='fadeInDown' duration={2000} delay={1000}>
+                    <Mission />
+                    <Card
+                        title="Community Partners">
+                        <Loading />
+                    </Card>
+                </Animatable.View>
             </ScrollView>
             )
         }
@@ -72,16 +75,18 @@ class About extends Component {
 
         return (
             <ScrollView>
-                <Mission />
-                <Card
-                    title="Community Partners">
-                    <FlatList
-                        data={this.props.partners.partners} //The first partners handles the partners data i.e. isLoading and errMessage propertier
-                                                            //The second partners is the partners data array 
-                        renderItem={renderPartner}
-                        keyExtractor={item=>item.id.toString()}
-                    />
-                </Card>
+                <Animatable.View animation= 'fadeInDown' duration={2000} delay={1000}>
+                    <Mission />
+                    <Card
+                        title="Community Partners">
+                        <FlatList
+                            data={this.props.partners.partners} //The first partners handles the partners data i.e. isLoading and errMessage propertier
+                                                                //The second partners is the partners data array 
+                            renderItem={renderPartner}
+                            keyExtractor={item=>item.id.toString()}
+                        />
+                    </Card>
+                </Animatable.View>
             </ScrollView>
         );
     }

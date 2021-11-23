@@ -7,6 +7,7 @@ import { baseUrl } from "../shared/baseUrl";
 import { SwipeRow } from "react-native-swipe-list-view";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { deleteFavorite } from "../redux/ActionCreators";
+import * as Animatable from "react-native-animatable";
 
 const mapStateToProps = (state) => {
   return {
@@ -54,7 +55,7 @@ class Favorites extends Component {
                       onPress: () => this.props.deleteFavorite(item.id),
                     },
                   ],
-                  { cancelable: false }
+                  { cancelable: false } // They cannot exit alert box by tapping outside. They have to press delete or cancel
                 )
               }
             >
@@ -88,15 +89,17 @@ class Favorites extends Component {
     }
     //Whent this point of the code is reached that means there is no error message and the isLoading is false
     return (
-      <FlatList
-        //Trying to match the id of the array of campsites with the id of the array of favorites
-        data={this.props.campsites.campsites.filter((campsite) =>
-          this.props.favorites.includes(campsite.id)
-        )}
-        renderItem={renderFavoriteItem}
-        //This passes each item into a function and extracts the id from it as a string to use as the unique key for each item
-        keyExtractor={(item) => item.id.toString()}
-      />
+      <Animatable.View animation="fadeInRightBig" duration={2000}>
+        <FlatList
+          //Trying to match the id of the array of campsites with the id of the array of favorites
+          data={this.props.campsites.campsites.filter((campsite) =>
+            this.props.favorites.includes(campsite.id)
+          )}
+          renderItem={renderFavoriteItem}
+          //This passes each item into a function and extracts the id from it as a string to use as the unique key for each item
+          keyExtractor={(item) => item.id.toString()}
+        />
+      </Animatable.View>
     );
   }
 }

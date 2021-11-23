@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {View, Text, ScrollView} from 'react-native'
+import {View, Text, Animated} from 'react-native'
 import {Card} from 'react-native-elements'
 import {connect} from 'react-redux'
 import bootstrapIMG from "./images/bootstrap-logo.png";
@@ -45,7 +45,31 @@ function RenderItem (props) {
 }
 
 class Home extends Component {
+    //For animated componenets you have to store the state value in the components state.
+    //Note: you do not have to use the names "scaleValue" or "animate". Those are custom names use to be descriptive
+    constructor(props) {
+        super(props)
+        this.state={
+            scaleValue: new Animated.Value(0)
+        }
+    }
 
+    //First argument is what we want changed over time. Second is an object that contains 3 properties
+    animate() {
+        Animated.timing(
+           this.state.scaleValue,
+           {
+               toValue:1,
+               duration: 1500,
+               useNativeDriver: true
+           }
+        ).start()
+    }
+
+    //When the component mounts it will automatically start this animation
+    componentDidMount(){
+        this.animate()
+    }
 
     static navigationOptions = {
         title: 'Home'
@@ -53,7 +77,7 @@ class Home extends Component {
 
     render() {
         return (
-         <ScrollView>
+         <Animated.ScrollView style={{transform: [{scale: this.state.scaleValue}]}}>
                 <RenderItem //filters through the data arrays and looks for the first index featured item in the array
                     item={this.props.campsites.campsites.filter(campsite => campsite.featured)[0]}
                     isLoading={this.props.campsites.isLoading}
@@ -69,7 +93,7 @@ class Home extends Component {
                     isLoading={this.props.partners.isLoading}
                     errMess={this.props.partners.errMess}
                 />
-         </ScrollView>
+         </Animated.ScrollView>
         )
     }
 }
