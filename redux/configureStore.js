@@ -6,10 +6,18 @@ import { comments } from './comments';
 import { promotions } from './promotions';
 import { partners } from './partners';
 import { favorites } from './favorites';
+import { persistStore, persistCombineReducers } from 'redux-persist'; //Persistent support for the reducers so they will automatically update the state to persistenet storage whenever there is a change to the state
+import storage from 'redux-persist/lib/storage'; //Access to local storage on device with storage support
+
+const config = {
+    key:'root',
+    storage,
+    debug: true
+}
 
 export const ConfigureStore = () => {
     const store = createStore(
-        combineReducers({
+        persistCombineReducers(config, {
             campsites,
             comments,
             partners,
@@ -19,5 +27,7 @@ export const ConfigureStore = () => {
         applyMiddleware(thunk, logger)
     );
 
-    return store;
+    const persistor = persistStore(store)
+
+    return { persistor, store };
 }
