@@ -36,15 +36,20 @@ mapDispatchToProps = {
 function RenderCampsite(props) {
   const { campsite } = props;
 
+  //
   const view = React.createRef();
 
   //dx is a gesture across the x axis. Returns true if the value is less than -200 and false if it is not
   const recognizeDrag = ({ dx }) => (dx < -200 ? true : false);
 
+  const recognizeComment = ({ dx }) => (dx < 200 ? true : false);
+
 //e is for event. Required to get to the second Paramenter. Second parameter an object ,gestureState, holds information about the gesture that ended
 //if statement for the gesture to go if it was less than 200px
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
+    
+    //This is referencing the view ref created above
     onPanResponderGrant: () => {
       view.current.rubberBand(1000)
       .then(endState => console.log(endState.finished ? 'finished' : 'canceled'))
@@ -74,6 +79,10 @@ function RenderCampsite(props) {
           { cancelable: false } //So the user cannot tap outside of the alert box to close it
         );
       }
+
+      else if (recognizeComment(gestureState)) {
+        props.onShowModal()
+      }
       return true;
     },
   });
@@ -84,7 +93,7 @@ function RenderCampsite(props) {
         animation="fadeInDown"
         duration={2000}
         delay={1000}
-        ref={view}
+        ref={view} //This is referencing the view ref created above
         {...panResponder.panHandlers} //Connects panhandler to the component.  Question: why do we need to spread it out
       >
         <Card
