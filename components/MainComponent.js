@@ -18,6 +18,7 @@ import About from "./AboutComponent";
 import Contact from "./ContactComponent";
 import Reservation from "./ReservationComponent";
 import Favorites from "./FavoritesComponent";
+import Login from './LoginComponent';
 import { Icon } from "react-native-elements";
 import SafeAreaView from "react-native-safe-area-view";
 import { connect } from 'react-redux';
@@ -190,6 +191,31 @@ const FavoritesNavigator = createStackNavigator(
   }
 );
 
+const LoginNavigator = createStackNavigator(
+  {
+    Login: { screen: Login }, //Navigation available/listed in the stack
+  },
+  {
+    defaultNavigationOptions: ({ navigation }) => ({
+      headerStyle: {
+        backgroundColor: "#5637DD",
+      },
+      headerTintColor: "#fff",
+      headerTitleStyle: {
+        color: "#fff",
+      },
+      headerLeft: (
+        <Icon
+          name="sign-in"
+          type="font-awesome"
+          iconStyle={styles.stackIcon}
+          onPress={() => navigation.toggleDrawer()}
+        />
+      ),
+    }),
+  }
+);
+
 //CustomDrawerContentComponent will recieve props as its parameter and will return the drawer
 //SafeAreaView is for the iphone x and defines the area as safe area where nothing else will be layed out.
 //This accounts for the specific layout of this iphone.
@@ -216,6 +242,19 @@ const CustomDrawerContentComponent = props => (
 
 const MainNavigator = createDrawerNavigator(
   {
+    Login: {
+      screen: LoginNavigator,
+      navigationOptions: {
+        drawerIcon: ({ tintColor }) => (
+          <Icon
+            name="sign-in"
+            type="font-awesome"
+            size={24}
+            color={tintColor} //Note the tint colors prop will change depending on if the screen is active. active=blue inactive=gray
+          />
+        ),
+      },
+    },
     Home: {
       screen: HomeNavigator,
       navigationOptions: {
@@ -302,6 +341,7 @@ const MainNavigator = createDrawerNavigator(
     },
   },
   {
+    initialRouteName:'Home', //Without this the login screen would appear first. We want the home THEN the login 
     drawerBackgroundColor: "#CEC8FF",
     //connecting drawer navigator to this MainNavigator
     contentComponent: CustomDrawerContentComponent
