@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as Animatable from "react-native-animatable";
+import * as Notifications from 'expo-notifications';
 
 class Reservation extends Component {
   constructor(props) {
@@ -21,7 +22,6 @@ class Reservation extends Component {
       hikeIn: false,
       date: new Date(),
       showCalendar: false,
-    //   showModal: false,
     };
   }
 
@@ -29,14 +29,9 @@ class Reservation extends Component {
     title: "Reserve Campsite",
   };
 
-//   toggleModal() {
-//     this.setState({ showModal: !this.state.showModal });
-//   }
-
   //This echos back the input with the console.log and resets the state of the form
   handleReservation() {
     console.log(JSON.stringify(this.state));
-    // this.toggleModal();
   }
 
   resetForm() {
@@ -45,8 +40,38 @@ class Reservation extends Component {
       hikeIn: false,
       date: new Date(),
       showCalendar: false,
-    //   showModal: false,
     });
+  }
+
+  //This makes sure it the notification alert is shown
+  async presentLocalNotification(date) {
+    function sendNotification() {
+      Notifications.setNotificationHandler({
+          handleNotification: async () => ({
+            shouldShowAlert: true
+          })
+      })
+    
+    //This is when to send notification
+      Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'Your Campsite Reservation Search',
+          body: `Search for ${date} requested` //back tick syntax to pass in the date variable passed into the present local notification function
+        },
+        trigger: null //Cause the notification to fire immediately (null) or give it a time value
+      })
+    }
+
+    //Check if we already have notifications permissions from the device
+    //If we do not, we request them and wait for permissions. If we do, send the notification.
+    //If permission is not granted we do nothing
+    let permissions = await Notifications.getPermissionsAsync(); 
+    if(!permissions.granted) {
+      permissions = await Notifications.requestPermissionsAsync();
+    }
+    if (permissions.granted) {
+      sendNotification()
+    }
   }
 
   render() {
@@ -105,8 +130,7 @@ class Reservation extends Component {
               onChange={(event, selectedDate) => {
                 selectedDate &&
                   this.setState({ date: selectedDate, showCalendar: false });
-              }}
-              // style={styles.formItem}
+              }}            
             />
           )}
           <View style={styles.formRow}>
@@ -129,7 +153,10 @@ class Reservation extends Component {
                     },
                     {
                       text: "OK",
-                      onPress: () => this.resetForm(),
+                      onPress: () => {
+                        this.presentLocalNotification(this.state.date.toLocaleDateString('en-US'))
+                        this.resetForm()
+                      }
                     },
                   ],
                   { cancelable: false } // They cannot exit alert box by tapping outside. They have to press delete or cancel
@@ -139,33 +166,6 @@ class Reservation extends Component {
             />
           </View>
         </Animatable.View>
-        {/* <Modal
-          animationType={"slide"}
-          transparent={false}
-          visible={this.state.showModal} //If show modal is false then visible will be set to false if it is true than it will be set to true
-          onRequestClose={() => this.toggleModal} //Will close the Modal if the back button is pressed
-        >
-          <View style={styles.modal}>
-            <Text style={styles.modalTitle}>Search Campsite Reservations</Text>
-            <Text style={styles.modalText}>
-              Number of Campers: {this.state.campers}
-            </Text>
-            <Text style={styles.modalText}>
-              Hike-In?: {this.state.hikeIn ? "Yes" : "No"}
-            </Text>
-            <Text style={styles.modalText}>
-              Date: {this.state.date.toLocaleDateString("en-US")}
-            </Text>
-            <Button
-              onPress={() => {
-                this.toggleModal();
-                this.resetForm();
-              }}
-              color="#5637DD"
-              title="Close"
-            />
-          </View>
-        </Modal> */}
       </ScrollView>
     );
   }
@@ -186,22 +186,6 @@ const styles = StyleSheet.create({
   formItem: {
     flex: 1,
   },
-//   modal: {
-//     justifyContent: "center",
-//     margin: 20,
-//   },
-//   modalTitle: {
-//     fontSize: 24,
-//     fontWeight: "bold",
-//     backgroundColor: "#5637DD",
-//     textAlign: "center",
-//     color: "#fff",
-//     marginBottom: 20,
-//   },
-//   modalText: {
-//     fontSize: 18,
-//     margin: 10,
-//   },
 });
 
 export default Reservation;
