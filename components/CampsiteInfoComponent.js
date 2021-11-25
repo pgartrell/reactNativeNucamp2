@@ -9,6 +9,7 @@ import {
   StyleSheet,
   PanResponder,
   Alert,
+  Share
 } from "react-native";
 import { Card, Icon, Rating, Input } from "react-native-elements";
 import { connect } from "react-redux";
@@ -87,6 +88,17 @@ function RenderCampsite(props) {
     },
   });
 
+ 
+  const shareCampsite = (title, message, url) => {
+      Share.share ({
+        title, 
+        message: `${title}: ${message} ${url}`,
+        url
+      }, {
+        dialogTitle: 'Share' + title //Sets a title for the dialog that pops up when you share something
+      })
+  }
+
   if (campsite) {
     return (
       <Animatable.View
@@ -122,6 +134,16 @@ function RenderCampsite(props) {
               raised
               reverse
               onPress={() => props.onShowModal()}
+            />
+
+            <Icon 
+              name="share"             
+              type="font-awesome"
+              color="#5637DD"
+              raised
+              reverse
+              //This is not a prop. Pass in what we want to show
+              onPress={() => shareCampsite(campsite.name, campsite.description, baseUrl + campsite.image)}
             />
           </View>
         </Card>
